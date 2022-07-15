@@ -1,0 +1,142 @@
+3a)
+
+SELECT job.salary,recruiter.username, etaireia.name,job.id, count(*) 
+FROM etaireia,recruiter,job,applies WHERE job.recruiter=recruiter AND applies.job_id=job.id AND recruiter.firm=etaireia.afm 
+GROUP BY job.salary,recruiter.username,etaireia.name,job.id  HAVING job.salary>=1900; 
+
+3b)
+
+SELECT username,certificates,count(*),AVG(grade)
+ FROM has_degree
+ INNER JOIN candidate ON has_degree.cand_usrname=candidate.username GROUP BY candidate.username HAVING count(*)>1;
+
+
+3c)
+
+ SELECT cand_usrname, AVG(salary),count(*) 
+FROM applies INNER JOIN job ON applies.job_id=job.id 
+GROUP BY cand_usrname  
+HAVING AVG(salary)>=1800;
+
+3d)
+
+SELECT name,edra,antikeim_title,position FROM etaireia
+,job,requires
+WHERE job.id=requires.job_id AND antikeim_title LIKE '%program%' AND edra LIKE '%Patra%';
+
+
+5e)
+ SELECT username,count(*) counter_interviews ,count(1) counter_jobs,AVG(salary),
+announce_date FROM recruiter INNER JOIN interviews ON recruiter.username=interviews.recruiter_name 
+INNER JOIN job ON recruiter.username=job.recruiter  GROUP BY username  HAVING job.announce_date>=2 ORDER BY 4 DESC;
+
+4c)
+
+ DELIMITER $$ ; CREATE PROCEDURE test(IN id INT) 
+BEGIN 
+DECLARE exp_score INT; 
+DECLARE pers_score INT; 
+DECLARE edu_score INT; 
+DECLARE totalscore INT; 
+DECLARE cand_name VARCHAR(12); 
+DECLARE logos_aporripsis VARCHAR(100); SET totalscore=exp_score+pers_score+edu_score; 
+SELECT experience_score,personality_score,education_score INTO exp_score,pers_score,edu_score FROM interviews WHERE candidate_name=cand_name AND job_id=id; 
+IF exp_score=0 
+THEN SET logos_aporripsis="No prior experience"; END IF; 
+IF edu_score=0; 
+THEN SET logos_aporripsis="Inadequate Education"; END IF; 
+IF pers_score=0 THEN SET logos_aporripsis="Failed the interview"; END IF; 
+SELECT cand_usrname,totalscore FROM applies INNER JOIN interviews ON applies.job_id=id AND applies.job_id=interviews.job_id AND applies.cand_usrname=interviews.candidate_name GROUP BY cand_usrname;
+
+4b)
+
+DELIMITER // CREATE TRIGGER candidate_insert 
+AFTER INSERT ON candidate 
+FOR EACH ROW 
+BEGIN 
+INSERT INTO ACTIVITIES(username,1,Now(),'Nai','insert','candidate') END// DELIMITER;
+
+
+DELIMITER // 
+CREATE TRIGGER candidate_delete 
+AFTER DELETE ON candidate 
+FOR EACH ROW 
+BEGIN 
+INSERT INTO ACTIVITIES VALUES(username,1,Now(),'Nai','delete','candidate'); END// DELIMITER;
+
+ DELIMITER // 
+CREATE TRIGGER candidate_update 
+AFTER UPDATE ON candidate 
+FOR EACH ROW 
+BEGIN 
+INSERT INTO ACTIVITIES VALUES(username,1,Now(),'Nai','update','candidate'); END// DELIMITER;
+
+DELIMITER // 
+CREATE TRIGGER recruiter_insert 
+AFTER INSERT ON recruiter 
+FOR EACH ROW 
+BEGIN 
+INSERT INTO ACTIVITIES VALUES(username,1,Now(),'Nai','insert','recruiter'); END// DELIMITER;
+
+DELIMITER // 
+CREATE TRIGGER recruiter_delete 
+AFTER DELETE ON recruiter 
+FOR EACH ROW 
+BEGIN 
+INSERT INTO ACTIVITIES VALUES(username,1,Now(),'Nai','delete','recruiter'); EMD// DELIMITER;
+
+DELIMITER // 
+CREATE TRIGGER recruiter_update 
+AFTER UPDATE ON recruiter 
+FOR EACH ROW BEGIN INSERT INTO ACTIVITIES VALUES(username,1,Now(),'Nai','update','recruiter'); 
+END// DELIMITER;
+
+DELIMITER // 
+CREATE TRIGGER etaireia_insert
+AFTER INSERT ON etaireia 
+FOR EACH ROW BEGIN INSERT INTO ACTIVITIES VALUES(username,1,Now(),'Nai','insert','etaireia'); 
+END// DELIMITER;
+
+DELIMITER // 
+CREATE TRIGGER etaireia_update
+AFTER UPDATE ON etaireia 
+FOR EACH ROW BEGIN INSERT INTO ACTIVITIES VALUES(username,1,Now(),'Nai','update','etaireia'); 
+END// DELIMITER;
+
+DELIMITER // 
+CREATE TRIGGER etaireia_delete
+AFTER UPDATE ON etaireia 
+FOR EACH ROW BEGIN INSERT INTO ACTIVITIES VALUES(username,1,Now(),'Nai','delete','etaireia'); 
+END// DELIMITER;
+
+DELIMITER // 
+CREATE TRIGGER job_insert
+AFTER INSERT ON etaireia 
+FOR EACH ROW BEGIN INSERT INTO ACTIVITIES VALUES(username,1,Now(),'Nai','insert','job'); 
+END// DELIMITER;
+
+DELIMITER // 
+CREATE TRIGGER job_update
+AFTER UPDATE ON job  
+FOR EACH ROW BEGIN INSERT INTO ACTIVITIES VALUES(username,1,Now(),'Nai','update','job'); 
+END// DELIMITER;
+
+DELIMITER // 
+CREATE TRIGGER job_delete
+AFTER DELETE ON job  
+FOR EACH ROW BEGIN INSERT INTO ACTIVITIES VALUES(username,1,Now(),'Nai','delete','job'); 
+END// DELIMITER;
+
+
+4c)
+
+DELIMITER //
+CREATE TRIGGER prevent_delete AFTER DELETE ON applies
+FOR EACH ROW
+BEGIN
+IF( SELECT submission_date FROM job WHERE applies.job_id = job.id) <NOW() THEN
+SET @A = 'MHN DIAGRAPSEIS THN AITHSH';
+SELECT @A FROM applies;
+END IF;
+END//
+DELIMITER;
